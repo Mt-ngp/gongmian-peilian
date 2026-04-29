@@ -5,7 +5,7 @@ import {
   CheckCircle2, AlertCircle, BookOpen, Loader2, Send,
   Flame, Calendar, TrendingUp, Bookmark, MapPin, SlidersHorizontal, X,
   Repeat, Wallet, CheckCircle, Briefcase, Settings, ShieldCheck, Power, LogOut, KeyRound, Plus,
-  Headphones, Phone, Mail, Search
+  Headphones, Phone, Mail, Search, Library, FileText, Quote, Newspaper, Database, MapPinned, Filter
 } from "lucide-react";
 
 // ——— Mock data ———
@@ -63,6 +63,8 @@ export default function App() {
   const [role, setRole] = useState("student"); // 'student' | 'teacher' | 'partner'
   const [loggedOut, setLoggedOut] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [examGoal, setExamGoal] = useState({ exam: "国考", year: 2026, region: "全国", position: "暂未确定" });
 
   const openPersonDetail = (person, type) => {
     setSelectedPerson({ ...person, _type: type });
@@ -72,6 +74,11 @@ export default function App() {
   const openAvailability = () => setStack((s) => [...s, "availability"]);
   const openSupport = () => setStack((s) => [...s, "support"]);
   const openCreateRoom = () => setStack((s) => [...s, "create-room"]);
+  const openLibrary = () => setStack((s) => [...s, "library"]);
+  const openArticle = (article) => {
+    setSelectedArticle(article);
+    setStack((s) => [...s, "article-detail"]);
+  };
   const handleLogout = () => {
     setLoggedOut(true);
     setStack([]);
@@ -195,10 +202,10 @@ export default function App() {
               <AuthFlow onLogin={handleLogin} />
             ) : (
               <>
-            {!current && tab === "home" && <HomeScreen onNav={(s) => push(s)} setTab={setTab} />}
+            {!current && tab === "home" && <HomeScreen onNav={(s) => push(s)} setTab={setTab} examGoal={examGoal} onOpenLibrary={openLibrary} />}
             {!current && tab === "train" && <TrainHubScreen onNav={(s) => push(s)} />}
             {!current && tab === "people" && <PeopleScreen onSelectPerson={openPersonDetail} />}
-            {!current && tab === "me" && <MeScreen role={role} onLogout={handleLogout} onOpenSchedule={openSchedule} onOpenAvailability={openAvailability} onOpenSupport={openSupport} />}
+            {!current && tab === "me" && <MeScreen role={role} onLogout={handleLogout} onOpenSchedule={openSchedule} onOpenAvailability={openAvailability} onOpenSupport={openSupport} examGoal={examGoal} setExamGoal={setExamGoal} />}
 
             {current === "rooms" && <RoomsScreen onBack={pop} onCreate={openCreateRoom} />}
             {current === "solo" && <SoloPickType onBack={pop} onPick={(t) => { setTopic(QUESTIONS[t.id]); push("solo-answer"); }} />}
@@ -212,6 +219,8 @@ export default function App() {
             {current === "support" && <CustomerServiceScreen onBack={pop} onOpenChat={() => push("ai-chat")} />}
             {current === "ai-chat" && <AIChatScreen onBack={pop} />}
             {current === "create-room" && <CreateRoomScreen onBack={pop} />}
+            {current === "library" && <LibraryScreen onBack={pop} onOpenArticle={openArticle} />}
+            {current === "article-detail" && selectedArticle && <ArticleDetailScreen article={selectedArticle} onBack={pop} />}
               </>
             )}
           </div>
@@ -249,7 +258,13 @@ export default function App() {
 
 // ——— Screens ———
 
-function HomeScreen({ onNav, setTab }) {
+function HomeScreen({ onNav, setTab, examGoal, onOpenLibrary }) {
+  const countdowns = { "国考": 28, "省考": 56, "选调生": 42, "事业单位": 72 };
+  const days = countdowns[examGoal?.exam] || 28;
+  const examLabel = examGoal?.region && examGoal.region !== "全国"
+    ? `${examGoal.region}${examGoal.exam}面试`
+    : `${examGoal?.year || 2026} ${examGoal?.exam || "国考"}面试`;
+
   return (
     <div className="px-5 pt-2 pb-6">
       {/* Header */}
@@ -267,9 +282,9 @@ function HomeScreen({ onNav, setTab }) {
       <div className="rounded-2xl p-5 mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2332 0%, #2a3447 100%)" }}>
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: "#C7472D" }} />
         <div className="relative">
-          <div className="text-xs tracking-widest mb-1" style={{ color: "#B8956A" }}>距 2026 国考面试</div>
+          <div className="text-xs tracking-widest mb-1" style={{ color: "#B8956A" }}>距 {examLabel}</div>
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="font-serif-cn text-5xl font-black text-white">28</span>
+            <span className="font-serif-cn text-5xl font-black text-white">{days}</span>
             <span className="text-white/70 text-sm">天</span>
           </div>
           <div className="text-white/80 text-xs leading-relaxed">同学,今天是你练习的第 14 天,已累计 23 次模拟。</div>
@@ -280,7 +295,7 @@ function HomeScreen({ onNav, setTab }) {
       </div>
 
       {/* Quick entries */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-3">
         <button onClick={() => onNav("rooms")} className="rounded-xl p-4 text-left relative overflow-hidden" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
           <Users size={20} style={{ color: "#C7472D" }} />
           <div className="font-bold text-sm mt-2" style={{ color: "#1a2332" }}>真人对练房间</div>
@@ -296,6 +311,23 @@ function HomeScreen({ onNav, setTab }) {
           <div className="text-[11px] mt-1 text-white/60">即时点评 · 24 小时</div>
         </button>
       </div>
+
+      {/* Library big entry */}
+      <button onClick={onOpenLibrary} className="w-full rounded-xl p-4 mb-6 text-left relative overflow-hidden flex items-center gap-3" style={{ background: "linear-gradient(135deg, #FAF0E0 0%, #fff 100%)", border: "1px solid #E8D5A8" }}>
+        <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full opacity-20" style={{ background: "#B8956A" }} />
+        <div className="relative w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#1a2332" }}>
+          <Library size={22} style={{ color: "#B8956A" }} />
+        </div>
+        <div className="relative flex-1">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="font-bold text-sm" style={{ color: "#1a2332" }}>政策资料库</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold stamp" style={{ background: "#C7472D", color: "#fff" }}>每日更新</span>
+          </div>
+          <div className="text-[10.5px] leading-relaxed" style={{ color: "#7A6B52" }}>政策文件 · 领导讲话 · 时政热点 · 落地案例 · 数据库</div>
+          <div className="text-[10px] mt-1" style={{ color: "#9A6A2A" }}>充实你的答题素材 · 已收录 2,463 篇</div>
+        </div>
+        <ChevronRight size={16} style={{ color: "#9A6A2A" }} className="relative" />
+      </button>
 
       {/* Section: rooms */}
       <SectionHeader title="今日热门房间" subtitle="正在进行" onMore={() => onNav("rooms")} />
@@ -1057,7 +1089,7 @@ function PartnersScreen({ onBack, onSelectPerson }) {
   );
 }
 
-function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSupport }) {
+function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSupport, examGoal, setExamGoal }) {
   const ROLE_INFO = {
     student: { label: "学员", icon: BookOpen },
     teacher: { label: "面试老师", icon: GraduationCap },
@@ -1079,21 +1111,42 @@ function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSu
         </button>
       </div>
 
-      {role === "student" && <StudentMeView onOpenSupport={onOpenSupport} />}
+      {role === "student" && <StudentMeView onOpenSupport={onOpenSupport} examGoal={examGoal} setExamGoal={setExamGoal} />}
       {role === "teacher" && <TeacherMeView onOpenSchedule={onOpenSchedule} onOpenSupport={onOpenSupport} />}
       {role === "partner" && <PartnerMeView onOpenAvailability={onOpenAvailability} onOpenSupport={onOpenSupport} />}
     </div>
   );
 }
 
-function StudentMeView({ onOpenSupport }) {
+function StudentMeView({ onOpenSupport, examGoal, setExamGoal }) {
+  const [editing, setEditing] = useState(false);
+
+  const hasPos = examGoal.position && examGoal.position !== "暂未确定";
+  const regionPart = (examGoal.region === "全国" || !examGoal.region) ? "" : examGoal.region;
+  const goalLabel = `${examGoal.year} ${regionPart}${examGoal.exam}${hasPos ? "·" + examGoal.position : ""}备考`;
+
   return (
     <>
-      <div className="rounded-2xl p-5 mb-4 text-center" style={{ background: "linear-gradient(135deg, #1a2332 0%, #2a3447 100%)" }}>
-        <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center font-serif-cn text-3xl text-white mb-3" style={{ background: "rgba(184,149,106,0.3)", border: "2px solid #B8956A" }}>同</div>
-        <div className="font-bold text-white text-lg">同学小李</div>
-        <div className="text-[11px] mt-1" style={{ color: "#B8956A" }}>2026 国考备考 · 第 14 天</div>
+      <div className="rounded-2xl p-5 mb-4 text-center relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2332 0%, #2a3447 100%)" }}>
+        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: "#B8956A" }} />
+        <div className="relative">
+          <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center font-serif-cn text-3xl text-white mb-3" style={{ background: "rgba(184,149,106,0.3)", border: "2px solid #B8956A" }}>同</div>
+          <div className="font-bold text-white text-lg">同学小李</div>
+          <button onClick={() => setEditing(!editing)} className="mt-1.5 inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full" style={{ background: "rgba(184,149,106,0.2)", color: "#B8956A", border: "1px solid rgba(184,149,106,0.3)" }}>
+            <span>{goalLabel} · 第 14 天</span>
+            <span style={{ fontSize: 8, opacity: 0.7 }}>{editing ? "▲" : "▼"}</span>
+          </button>
+        </div>
       </div>
+
+      {editing && (
+        <ExamGoalEditor
+          examGoal={examGoal}
+          setExamGoal={setExamGoal}
+          onClose={() => setEditing(false)}
+        />
+      )}
+
       <div className="grid grid-cols-3 gap-3 mb-4">
         {[
           { icon: Flame, label: "连续打卡", value: "14 天" },
@@ -1118,6 +1171,170 @@ function StudentMeView({ onOpenSupport }) {
         { icon: Headphones, label: "客服中心", value: "在线", onClick: onOpenSupport },
       ]} />
     </>
+  );
+}
+
+function ExamGoalEditor({ examGoal, setExamGoal, onClose }) {
+  const [draft, setDraft] = useState(examGoal);
+
+  const EXAMS = ["国考", "省考", "选调生", "事业单位"];
+  const REGIONS_BY_EXAM = {
+    "国考": ["全国"],
+    "省考": ["北京", "上海", "广东", "江苏", "浙江", "山东", "四川", "河南", "湖北", "湖南", "福建", "安徽", "辽宁", "陕西", "河北", "云南", "江西", "广西", "其他"],
+    "选调生": ["全国", "中央选调", "地方选调"],
+    "事业单位": ["全国统考", "本省统考", "单独招考"],
+  };
+  const POSITIONS_BY_EXAM = {
+    "国考": ["暂未确定", "税务岗", "海关岗", "银保监岗", "铁路公安", "出入境边防", "海事局", "统计调查队", "中央机关", "外交部", "其他"],
+    "省考": ["暂未确定", "综合岗", "公安岗", "监狱戒毒岗", "法检岗", "审计岗", "其他"],
+    "选调生": ["暂未确定", "综合管理", "基层岗", "党政机关", "其他"],
+    "事业单位": ["暂未确定", "综合管理类(A类)", "社会科学专技(B类)", "自然科学专技(C类)", "中小学教师(D类)", "医疗卫生(E类)"],
+  };
+  const YEARS = [2026, 2027];
+
+  const availableRegions = REGIONS_BY_EXAM[draft.exam];
+  const availablePositions = POSITIONS_BY_EXAM[draft.exam];
+  const regionValid = availableRegions.includes(draft.region);
+  const positionValid = availablePositions.includes(draft.position);
+
+  if (!regionValid && draft.region !== availableRegions[0]) {
+    setDraft({ ...draft, region: availableRegions[0] });
+  }
+  if (!positionValid && draft.position !== availablePositions[0]) {
+    setDraft({ ...draft, position: availablePositions[0] });
+  }
+
+  const handleSave = () => {
+    setExamGoal(draft);
+    onClose();
+  };
+
+  const positionLabel = {
+    "国考": "报考岗位",
+    "省考": "报考岗位",
+    "选调生": "选调类型",
+    "事业单位": "招考类别",
+  }[draft.exam];
+
+  return (
+    <div className="rounded-2xl p-4 mb-4" style={{ background: "#fff", border: "1px solid #E8D5A8" }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1.5">
+          <Sparkles size={13} style={{ color: "#9A6A2A" }} />
+          <span className="text-xs font-bold" style={{ color: "#9A6A2A" }}>设置我的备考目标</span>
+        </div>
+        <button onClick={onClose}><X size={15} style={{ color: "#9A8866" }} /></button>
+      </div>
+
+      <div className="text-[10.5px] mb-3" style={{ color: "#7A6B52" }}>设定后,首页倒计时和题库会按你的目标推荐</div>
+
+      {/* Exam type */}
+      <div className="text-[10px] font-bold mb-1.5" style={{ color: "#7A6B52" }}>考试类型</div>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {EXAMS.map((e) => {
+          const active = draft.exam === e;
+          return (
+            <button
+              key={e}
+              onClick={() => setDraft({
+                ...draft,
+                exam: e,
+                region: REGIONS_BY_EXAM[e][0],
+                position: POSITIONS_BY_EXAM[e][0],
+              })}
+              className="px-3 py-1.5 rounded-full text-[11px] font-semibold"
+              style={{
+                background: active ? "#1a2332" : "#fff",
+                color: active ? "#fff" : "#7A6B52",
+                border: `1px solid ${active ? "#1a2332" : "#E8DFCC"}`,
+              }}
+            >
+              {e}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Region */}
+      <div className="text-[10px] font-bold mb-1.5" style={{ color: "#7A6B52" }}>
+        {draft.exam === "国考" ? "考试范围" : draft.exam === "省考" ? "报考省份" : "报考方向"}
+      </div>
+      <div className="flex flex-wrap gap-1.5 mb-3 max-h-28 overflow-y-auto">
+        {availableRegions.map((r) => {
+          const active = draft.region === r;
+          return (
+            <button
+              key={r}
+              onClick={() => setDraft({ ...draft, region: r })}
+              className="px-2.5 py-1 rounded-full text-[10.5px]"
+              style={{
+                background: active ? "#FAF0E0" : "transparent",
+                color: active ? "#9A6A2A" : "#7A6B52",
+                border: `1px solid ${active ? "#E8D5A8" : "#E8DFCC"}`,
+                fontWeight: active ? 700 : 400,
+              }}
+            >
+              {r}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Position / Post type */}
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <span className="text-[10px] font-bold" style={{ color: "#7A6B52" }}>{positionLabel}</span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#FAF0E0", color: "#9A6A2A" }}>影响题库与陪练匹配</span>
+      </div>
+      <div className="flex flex-wrap gap-1.5 mb-3 max-h-28 overflow-y-auto">
+        {availablePositions.map((p) => {
+          const active = draft.position === p;
+          const isUndecided = p === "暂未确定";
+          return (
+            <button
+              key={p}
+              onClick={() => setDraft({ ...draft, position: p })}
+              className="px-2.5 py-1 rounded-full text-[10.5px]"
+              style={{
+                background: active ? (isUndecided ? "#F0E8D4" : "#FAF0E0") : "transparent",
+                color: active ? (isUndecided ? "#7A6B52" : "#9A6A2A") : "#7A6B52",
+                border: `1px solid ${active ? (isUndecided ? "#D4C7A8" : "#E8D5A8") : "#E8DFCC"}`,
+                fontWeight: active ? 700 : 400,
+                fontStyle: isUndecided ? "italic" : "normal",
+              }}
+            >
+              {p}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Year */}
+      <div className="text-[10px] font-bold mb-1.5" style={{ color: "#7A6B52" }}>报考年份</div>
+      <div className="flex gap-2 mb-4">
+        {YEARS.map((y) => {
+          const active = draft.year === y;
+          return (
+            <button
+              key={y}
+              onClick={() => setDraft({ ...draft, year: y })}
+              className="flex-1 py-2 rounded-lg text-xs font-bold"
+              style={{
+                background: active ? "#1a2332" : "#fff",
+                color: active ? "#fff" : "#7A6B52",
+                border: `1px solid ${active ? "#1a2332" : "#E8DFCC"}`,
+              }}
+            >
+              {y} 年
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-2">
+        <button onClick={onClose} className="flex-1 py-2.5 rounded-lg text-xs font-bold" style={{ background: "#fff", border: "1px solid #E8DFCC", color: "#7A6B52" }}>取消</button>
+        <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg text-xs font-bold" style={{ background: "#C7472D", color: "#fff" }}>保存目标</button>
+      </div>
+    </div>
   );
 }
 
@@ -2844,6 +3061,448 @@ function DetailRow({ icon: Icon, label, value }) {
       <Icon size={12} style={{ color: "#B8956A" }} />
       <span style={{ color: "rgba(255,255,255,0.85)" }}>{label}</span>
       {value && <span className="ml-auto" style={{ color: "rgba(255,255,255,0.6)" }}>{value}</span>}
+    </div>
+  );
+}
+
+// ——— Library / 政策资料库 ———
+
+const LIBRARY_CATEGORIES = [
+  { id: "policy", label: "政策文件", icon: FileText, color: "#C7472D", count: 482 },
+  { id: "speech", label: "领导讲话", icon: Quote, color: "#9A6A2A", count: 316 },
+  { id: "hotspot", label: "时政热点", icon: Newspaper, color: "#1a2332", count: 728 },
+  { id: "case", label: "落地案例", icon: MapPinned, color: "#5C8A52", count: 594 },
+  { id: "data", label: "权威数据", icon: Database, color: "#7A6B52", count: 343 },
+];
+
+const LIBRARY_ARTICLES = [
+  {
+    id: 1, category: "policy", level: "中央", date: "2 天前", new: true,
+    title: "《关于推动新质生产力发展的若干意见》解读",
+    source: "新华社 · 中共中央办公厅",
+    summary: "中央层面首次系统部署新质生产力培育路径,提出科技、制度、人才三大支柱。文件明确了未来 5 年的关键任务和考核指标。",
+    keyPoints: ["新质生产力核心 = 科技创新驱动", "六大重点产业:AI / 生物 / 新能源 / 商业航天 / 低空经济 / 量子", "强调因地制宜,避免一窝蜂"],
+    examTip: "综合分析题高频考点。回答经济转型、科技创新、产业升级类题目时可作总论点引用。",
+    tags: ["新质生产力", "高频", "国考"],
+  },
+  {
+    id: 2, category: "speech", level: "中央", date: "1 周前", new: true,
+    title: "习近平:在加快建设农业强国大会上的讲话",
+    source: "人民日报",
+    summary: "强调三农工作要做到产出高效、产品安全、资源节约、环境友好。提出新时代农业现代化的五个统筹。",
+    keyPoints: ["确保中国人饭碗牢牢端在自己手中", "建设宜居宜业和美乡村", "深入实施种业振兴行动"],
+    examTip: "涉及乡村振兴、粮食安全、共同富裕题目的标杆话术,可直接引用作为开篇立意。",
+    tags: ["乡村振兴", "粮食安全"],
+  },
+  {
+    id: 3, category: "hotspot", level: "全国", date: "3 天前", new: true,
+    title: "DeepSeek 引发 AI 热潮:开源模型如何改变行业格局",
+    source: "光明日报 · 评论员文章",
+    summary: "国产开源大模型挑战国际巨头,引发对科技自立自强、开源生态、人才战略的深度讨论。",
+    keyPoints: ["核心技术必须自主可控", "开源是创新加速器", "AI + 各行业带来生产力变革"],
+    examTip: "应对科技自立自强类题目的最新案例。展现你对前沿科技动态的关注度。",
+    tags: ["科技创新", "AI", "自立自强"],
+  },
+  {
+    id: 4, category: "case", level: "省级", date: "5 天前",
+    title: "浙江千万工程二十载:从环境整治到全面振兴",
+    source: "浙江日报",
+    summary: "千村示范、万村整治工程实施 20 年,浙江农村人居环境、产业、文化全方位升级,被联合国授予地球卫士奖。",
+    keyPoints: ["从村美到业兴再到民富的递进式发展", "党建引领 + 群众参与 + 久久为功", "形成可复制的乡村振兴浙江样本"],
+    examTip: "回答如何推进乡村振兴、借鉴外地经验等组织管理题时,作为分论据展示。",
+    tags: ["乡村振兴", "浙江", "落地案例"],
+  },
+  {
+    id: 5, category: "policy", level: "中央", date: "1 周前",
+    title: "《国务院关于促进银发经济高质量发展的意见》",
+    source: "国务院",
+    summary: "首次以银发经济概念提出顶层设计,部署养老服务、银发消费、适老化改造等 4 大领域 26 项任务。",
+    keyPoints: ["银发经济 = 老龄事业 + 老龄产业", "聚焦学有教、劳有得、病有医、老有养", "鼓励社会力量参与"],
+    examTip: "回答老龄化、社会保障、消费升级类题目可引用。强调应对老龄化国家战略的政策依据。",
+    tags: ["银发经济", "老龄化", "高频"],
+  },
+  {
+    id: 6, category: "data", level: "全国", date: "今天", new: true,
+    title: "2025 年一季度国民经济运行数据(国家统计局)",
+    source: "国家统计局",
+    summary: "GDP 同比增长 5.4%,新质生产力相关产业增加值同比增长 10.6%,创新动能持续释放。",
+    keyPoints: ["GDP 增速 5.4%,超预期", "高技术制造业增加值 +9.7%", "服务消费增速达 9.6%"],
+    examTip: "用于增强综合分析题的论据可信度。具体数字 > 空泛表述。",
+    tags: ["数据", "经济运行"],
+  },
+  {
+    id: 7, category: "case", level: "市级", date: "2 周前",
+    title: "贵州村BA:体育赋能乡村振兴的草根样本",
+    source: "新华社",
+    summary: "黔东南苗族村寨的村级篮球赛走红全网,带动旅游、文化、消费,展现乡村文化自信与活力。",
+    keyPoints: ["群众自发组织,而非自上而下", "文体旅融合释放综合效益", "互联网放大本地特色文化"],
+    examTip: "新颖的乡村振兴案例,避免老套地举袁隆平/塞罕坝,体现你对当下的关注。",
+    tags: ["乡村振兴", "文化自信"],
+  },
+  {
+    id: 8, category: "speech", level: "中央", date: "3 周前",
+    title: "习近平在民营企业座谈会上的讲话",
+    source: "新华社",
+    summary: "重申两个毫不动摇,回应民营企业关切,强调民营经济发展环境优化的政策连续性。",
+    keyPoints: ["民营企业是中国式现代化生力军", "三个不变:基本经济制度、支持民营经济、构建亲清政商关系", "构建全国统一大市场"],
+    examTip: "回答营商环境、市场经济、政策稳定性类题目的权威表述。",
+    tags: ["民营经济", "营商环境"],
+  },
+  {
+    id: 9, category: "hotspot", level: "全国", date: "1 周前",
+    title: "低空经济:万亿级新蓝海如何起飞",
+    source: "经济日报",
+    summary: "中央经济工作会议把低空经济列为战略性新兴产业,无人机、eVTOL、通航基础设施加速布局。",
+    keyPoints: ["2030 年市场规模有望达 2 万亿", "立法、空域、安全是三大瓶颈", "需平衡发展与监管"],
+    examTip: "新兴产业类题目的最新案例。可结合本地情况谈具体应用场景(物流、农业、应急)。",
+    tags: ["低空经济", "新兴产业"],
+  },
+  {
+    id: 10, category: "policy", level: "省级", date: "2 周前",
+    title: "广东省百千万工程实施方案",
+    source: "广东省政府",
+    summary: "广东百县千镇万村高质量发展工程具体落地方案,15 大行动 70 项任务清单。",
+    keyPoints: ["县域经济破题:做强中心镇", "城乡融合:基础设施和公共服务下沉", "考核指标量化到具体年份"],
+    examTip: "广东省考考生重点积累,体现地域熟悉度。其他省份可作为借鉴外地经验使用。",
+    tags: ["广东", "县域经济"],
+  },
+];
+
+function LibraryScreen({ onBack, onOpenArticle }) {
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filtered = LIBRARY_ARTICLES.filter((a) => {
+    if (activeCategory !== "all" && a.category !== activeCategory) return false;
+    if (searchTerm && !a.title.toLowerCase().includes(searchTerm.toLowerCase()) && !a.tags.some((t) => t.toLowerCase().includes(searchTerm.toLowerCase()))) return false;
+    return true;
+  });
+
+  const newCount = LIBRARY_ARTICLES.filter((a) => a.new).length;
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScreenHeader title="政策资料库" onBack={onBack} />
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Hero */}
+        <div className="px-5 pt-4 pb-5 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #1a2332, #2a3447)" }}>
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: "#C7472D" }} />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-2">
+              <Library size={18} style={{ color: "#B8956A" }} />
+              <span className="text-[10px] tracking-widest" style={{ color: "#B8956A" }}>POLICY LIBRARY</span>
+            </div>
+            <div className="font-serif-cn font-bold text-white text-lg mb-1">充实素材 · 答出深度</div>
+            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+              已收录 <span className="font-bold" style={{ color: "#B8956A" }}>2,463</span> 篇 · 今日新增{" "}
+              <span className="font-bold" style={{ color: "#fff" }}>{newCount}</span> 篇
+            </div>
+            <div className="mt-3 px-3 py-2.5 rounded-lg flex items-center gap-2" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <Search size={13} style={{ color: "rgba(255,255,255,0.5)" }} />
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="搜索政策、热点、关键词..."
+                className="flex-1 bg-transparent outline-none text-xs"
+                style={{ color: "#fff" }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Category tabs */}
+        <div className="px-5 pt-4 pb-2">
+          <div className="flex gap-2 overflow-x-auto scroll-x -mx-5 px-5">
+            <button
+              onClick={() => setActiveCategory("all")}
+              className="px-3 py-1.5 rounded-full text-[11px] font-semibold shrink-0"
+              style={{
+                background: activeCategory === "all" ? "#1a2332" : "#fff",
+                color: activeCategory === "all" ? "#fff" : "#7A6B52",
+                border: "1px solid #E8DFCC",
+              }}
+            >
+              全部
+            </button>
+            {LIBRARY_CATEGORIES.map((c) => {
+              const Icon = c.icon;
+              const active = activeCategory === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCategory(c.id)}
+                  className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1 shrink-0"
+                  style={{
+                    background: active ? "#1a2332" : "#fff",
+                    color: active ? "#fff" : "#7A6B52",
+                    border: "1px solid #E8DFCC",
+                  }}
+                >
+                  <Icon size={11} style={{ color: active ? "#B8956A" : c.color }} />
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Category grid (only when "all" selected) */}
+        {activeCategory === "all" && !searchTerm && (
+          <div className="px-5 pt-3">
+            <div className="grid grid-cols-5 gap-2 mb-5">
+              {LIBRARY_CATEGORIES.map((c) => {
+                const Icon = c.icon;
+                return (
+                  <button key={c.id} onClick={() => setActiveCategory(c.id)} className="rounded-xl py-3 px-1 text-center" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+                    <div className="w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-1" style={{ background: "#FAF0E0" }}>
+                      <Icon size={15} style={{ color: c.color }} />
+                    </div>
+                    <div className="text-[9.5px] font-bold leading-tight" style={{ color: "#1a2332" }}>{c.label}</div>
+                    <div className="text-[8.5px] mt-0.5" style={{ color: "#9A8866" }}>{c.count}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Article list */}
+        <div className="px-5 py-3 pb-6">
+          {activeCategory === "all" && !searchTerm && (
+            <div className="flex items-baseline gap-2 mb-3">
+              <h3 className="font-serif-cn font-bold text-base" style={{ color: "#1a2332" }}>最新更新</h3>
+              <span className="text-[10px]" style={{ color: "#9A8866" }}>按时间排序</span>
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <div className="rounded-xl py-10 text-center" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+              <div className="font-serif-cn text-3xl mb-2" style={{ color: "#9A8866" }}>无</div>
+              <div className="text-xs" style={{ color: "#7A6B52" }}>没有匹配的资料</div>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {filtered.map((a) => {
+                const cat = LIBRARY_CATEGORIES.find((c) => c.id === a.category);
+                const CatIcon = cat.icon;
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => onOpenArticle(a)}
+                    className="w-full rounded-xl p-3.5 text-left active:scale-[0.99] transition-transform"
+                    style={{ background: "#fff", border: "1px solid #E8DFCC" }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "#FAF0E0", color: cat.color }}>
+                        <CatIcon size={9} />{cat.label}
+                      </span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: "#F0E8D4", color: "#7A6B52" }}>{a.level}</span>
+                      {a.new && <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: "#C7472D", color: "#fff" }}>NEW</span>}
+                      <span className="ml-auto text-[10px]" style={{ color: "#9A8866" }}>{a.date}</span>
+                    </div>
+                    <div className="font-bold text-sm mb-1 leading-snug" style={{ color: "#1a2332" }}>{a.title}</div>
+                    <div className="text-[10.5px] mb-2" style={{ color: "#9A8866" }}>{a.source}</div>
+                    <div className="text-[11px] leading-relaxed mb-2" style={{ color: "#7A6B52" }}>
+                      {a.summary.length > 80 ? a.summary.slice(0, 80) + "..." : a.summary}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {a.tags.map((t) => (
+                        <span key={t} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#FAF6EE", color: "#9A8866", border: "1px solid #E8DFCC" }}>#{t}</span>
+                      ))}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ArticleDetailScreen({ article, onBack }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiOutput, setAiOutput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const cat = LIBRARY_CATEGORIES.find((c) => c.id === article.category);
+  const CatIcon = cat.icon;
+
+  const handleApply = async () => {
+    if (!aiTopic.trim()) {
+      alert("请输入正在练习的题目");
+      return;
+    }
+    setAiLoading(true);
+    setAiOutput("");
+
+    const prompt = `你是一位资深公务员面试辅导老师。学员正在练习一道题目,需要把一篇政策素材运用到答题中。请帮学员把这篇素材"嫁接"到题目里,生成一段 80-120 字的高质量答题片段(可以作为综合分析题的论据使用)。
+
+【素材类别】${cat.label}
+【素材标题】${article.title}
+【素材摘要】${article.summary}
+【素材要点】${article.keyPoints.join("; ")}
+
+【正在练习的题目】${aiTopic}
+
+要求:
+1. 直接生成可以背诵的答题片段,不要给学员"建议"
+2. 引用素材时要自然贴切,体现政策依据
+3. 包含具体表述(如政策名、领导讲话精神),避免空话
+4. 80-120 字
+5. 不要使用 markdown 格式,直接输出文字`;
+
+    try {
+      const response = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 600,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await response.json();
+      const text = data.content.map((i) => i.text || "").join("");
+      setAiOutput(text);
+    } catch (e) {
+      setAiOutput("生成失败,请稍后再试。");
+    }
+    setAiLoading(false);
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScreenHeader title={cat.label} onBack={onBack} />
+
+      <div className="flex-1 overflow-y-auto pb-6">
+        {/* Header info */}
+        <div className="px-5 pt-4 pb-4" style={{ background: "linear-gradient(180deg, #FAF0E0 0%, #FAF6EE 100%)" }}>
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            <span className="text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "#1a2332", color: cat.color === "#1a2332" ? "#B8956A" : "#fff" }}>
+              <CatIcon size={10} />{cat.label}
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: "#fff", color: "#7A6B52", border: "1px solid #E8DFCC" }}>{article.level}</span>
+            {article.new && <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: "#C7472D", color: "#fff" }}>NEW</span>}
+          </div>
+          <h1 className="font-serif-cn font-bold text-lg leading-snug mb-2" style={{ color: "#1a2332" }}>{article.title}</h1>
+          <div className="flex items-center gap-2 text-[11px]" style={{ color: "#7A6B52" }}>
+            <span>{article.source}</span>
+            <span>·</span>
+            <span>{article.date}</span>
+          </div>
+        </div>
+
+        <div className="px-5 pt-5">
+          {/* Summary */}
+          <div className="mb-5">
+            <SectionLabel title="内容摘要" />
+            <div className="rounded-xl p-4 text-[12.5px] leading-relaxed" style={{ background: "#fff", border: "1px solid #E8DFCC", color: "#1a2332" }}>
+              {article.summary}
+            </div>
+          </div>
+
+          {/* Key points */}
+          <div className="mb-5">
+            <SectionLabel title="核心要点" hint="建议背诵" />
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+              {article.keyPoints.map((p, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded shrink-0 flex items-center justify-center font-serif-cn font-bold text-[11px]" style={{ background: "#1a2332", color: "#B8956A", marginTop: 2 }}>
+                    {i + 1}
+                  </div>
+                  <div className="text-[12.5px] leading-relaxed" style={{ color: "#1a2332" }}>{p}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Exam usage tip */}
+          <div className="mb-5">
+            <SectionLabel title="答题用法" hint="考点提示" />
+            <div className="rounded-xl p-4 flex gap-3" style={{ background: "#FAF0E0", border: "1px solid #E8D5A8" }}>
+              <Sparkles size={16} style={{ color: "#9A6A2A", marginTop: 2 }} className="shrink-0" />
+              <div className="text-[12px] leading-relaxed" style={{ color: "#1a2332" }}>{article.examTip}</div>
+            </div>
+          </div>
+
+          {/* AI 一键应用 */}
+          <div className="rounded-2xl p-4 mb-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2332, #2a3447)" }}>
+            <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10" style={{ background: "#C7472D" }} />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center stamp text-white text-[11px] font-bold" style={{ background: "#C7472D" }}>公</div>
+                <div>
+                  <div className="font-bold text-white text-sm">AI 一键应用</div>
+                  <div className="text-[10px]" style={{ color: "#B8956A" }}>把这篇素材套到你正在练的题目上</div>
+                </div>
+              </div>
+              {!showAIPanel ? (
+                <button onClick={() => setShowAIPanel(true)} className="w-full mt-3 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5" style={{ background: "#C7472D", color: "#fff" }}>
+                  <Sparkles size={13} /> 让 AI 帮我嫁接
+                </button>
+              ) : (
+                <>
+                  <div className="text-[11px] mb-1.5 font-semibold" style={{ color: "#B8956A" }}>请输入你正在练习的题目:</div>
+                  <textarea
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    placeholder="例如:谈谈你对乡村振兴的理解"
+                    className="w-full h-16 p-2.5 rounded-lg text-xs resize-none outline-none"
+                    style={{ background: "rgba(255,255,255,0.95)", color: "#1a2332" }}
+                  />
+                  <button
+                    onClick={handleApply}
+                    disabled={aiLoading}
+                    className="w-full mt-2 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"
+                    style={{ background: aiLoading ? "#9A8866" : "#C7472D", color: "#fff" }}
+                  >
+                    {aiLoading ? <><Loader2 size={13} className="animate-spin" /> AI 生成中...</> : <><Sparkles size={13} /> 生成答题片段</>}
+                  </button>
+
+                  {aiOutput && (
+                    <div className="mt-3 p-3 rounded-lg" style={{ background: "rgba(184,149,106,0.15)", border: "1px solid rgba(184,149,106,0.3)" }}>
+                      <div className="text-[10px] font-bold mb-1.5 flex items-center gap-1" style={{ color: "#B8956A" }}>
+                        <Sparkles size={11} /> AI 生成的答题片段
+                      </div>
+                      <div className="font-serif-cn text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: "#fff" }}>{aiOutput}</div>
+                      <button onClick={() => navigator.clipboard?.writeText(aiOutput)} className="mt-2 text-[10px] underline" style={{ color: "#B8956A" }}>复制片段</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div className="mb-3">
+            <SectionLabel title="相关标签" />
+            <div className="flex flex-wrap gap-1.5">
+              {article.tags.map((t) => (
+                <span key={t} className="text-[10px] px-2 py-1 rounded" style={{ background: "#fff", color: "#7A6B52", border: "1px solid #E8DFCC" }}>#{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom action bar */}
+      <div className="shrink-0 px-5 py-3 flex items-center gap-3" style={{ background: "rgba(250,246,238,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid #E8DFCC" }}>
+        <button onClick={() => setBookmarked(!bookmarked)} className="flex flex-col items-center gap-0.5 px-2">
+          <Bookmark size={18} fill={bookmarked ? "#C7472D" : "transparent"} stroke={bookmarked ? "#C7472D" : "#7A6B52"} />
+          <span className="text-[9px]" style={{ color: bookmarked ? "#C7472D" : "#7A6B52" }}>{bookmarked ? "已收藏" : "收藏"}</span>
+        </button>
+        <button className="flex-1 py-3 rounded-xl font-bold text-sm" style={{ background: "#fff", border: "1px solid #E8DFCC", color: "#1a2332" }}>
+          加入我的素材本
+        </button>
+        <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-1" style={{ background: "#1a2332", color: "#fff" }}>
+          <Mic size={13} /> 用此素材开练
+        </button>
+      </div>
     </div>
   );
 }
