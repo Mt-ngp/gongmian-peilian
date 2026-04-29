@@ -5,7 +5,8 @@ import {
   CheckCircle2, AlertCircle, BookOpen, Loader2, Send,
   Flame, Calendar, TrendingUp, Bookmark, MapPin, SlidersHorizontal, X,
   Repeat, Wallet, CheckCircle, Briefcase, Settings, ShieldCheck, Power, LogOut, KeyRound, Plus,
-  Headphones, Phone, Mail, Search, Library, FileText, Quote, Newspaper, Database, MapPinned, Filter
+  Headphones, Phone, Mail, Search, Library, FileText, Quote, Newspaper, Database, MapPinned, Filter,
+  Play, Volume2, Heart, Trophy, Compass, QrCode
 } from "lucide-react";
 
 // ——— Mock data ———
@@ -79,6 +80,17 @@ export default function App() {
     setSelectedArticle(article);
     setStack((s) => [...s, "article-detail"]);
   };
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const openExpressionVideo = (video) => {
+    setSelectedVideo(video);
+    setStack((s) => [...s, "video-detail"]);
+  };
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const openActivity = (activity) => {
+    setSelectedActivity(activity);
+    setStack((s) => [...s, "activity-detail"]);
+  };
+  const openPeople = () => setStack((s) => [...s, "people-list"]);
   const handleLogout = () => {
     setLoggedOut(true);
     setStack([]);
@@ -204,8 +216,8 @@ export default function App() {
               <>
             {!current && tab === "home" && <HomeScreen onNav={(s) => push(s)} setTab={setTab} examGoal={examGoal} onOpenLibrary={openLibrary} />}
             {!current && tab === "train" && <TrainHubScreen onNav={(s) => push(s)} />}
-            {!current && tab === "people" && <PeopleScreen onSelectPerson={openPersonDetail} />}
-            {!current && tab === "me" && <MeScreen role={role} onLogout={handleLogout} onOpenSchedule={openSchedule} onOpenAvailability={openAvailability} onOpenSupport={openSupport} examGoal={examGoal} setExamGoal={setExamGoal} />}
+            {!current && tab === "service" && <ServiceScreen onBack={pop} onOpenActivity={openActivity} examGoal={examGoal} />}
+            {!current && tab === "me" && <MeScreen role={role} onLogout={handleLogout} onOpenSchedule={openSchedule} onOpenAvailability={openAvailability} onOpenSupport={openSupport} onOpenPeople={openPeople} examGoal={examGoal} setExamGoal={setExamGoal} />}
 
             {current === "rooms" && <RoomsScreen onBack={pop} onCreate={openCreateRoom} />}
             {current === "solo" && <SoloPickType onBack={pop} onPick={(t) => { setTopic(QUESTIONS[t.id]); push("solo-answer"); }} />}
@@ -221,6 +233,10 @@ export default function App() {
             {current === "create-room" && <CreateRoomScreen onBack={pop} />}
             {current === "library" && <LibraryScreen onBack={pop} onOpenArticle={openArticle} />}
             {current === "article-detail" && selectedArticle && <ArticleDetailScreen article={selectedArticle} onBack={pop} />}
+            {current === "expression" && <ExpressionScreen onBack={pop} onOpenVideo={openExpressionVideo} />}
+            {current === "video-detail" && selectedVideo && <VideoDetailScreen video={selectedVideo} onBack={pop} />}
+            {current === "activity-detail" && selectedActivity && <ActivityDetailScreen activity={selectedActivity} onBack={pop} />}
+            {current === "people-list" && <PeopleListScreen onBack={pop} onSelectPerson={openPersonDetail} />}
               </>
             )}
           </div>
@@ -232,7 +248,7 @@ export default function App() {
                 {[
                   { id: "home", icon: Home, label: "首页" },
                   { id: "train", icon: Mic, label: "训练" },
-                  { id: "people", icon: Users, label: "师资" },
+                  { id: "service", icon: Heart, label: "公益" },
                   { id: "me", icon: User, label: "我的" },
                 ].map((t) => {
                   const Icon = t.icon;
@@ -428,7 +444,7 @@ function TrainHubScreen({ onNav }) {
         </div>
       </button>
 
-      <button onClick={() => onNav("solo")} className="w-full rounded-2xl p-5 text-left relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2332 0%, #2a3447 100%)" }}>
+      <button onClick={() => onNav("solo")} className="w-full rounded-2xl p-5 mb-3 text-left relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1a2332 0%, #2a3447 100%)" }}>
         <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-10" style={{ background: "#B8956A" }} />
         <div className="relative flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(184,149,106,0.2)" }}>
@@ -443,6 +459,29 @@ function TrainHubScreen({ onNav }) {
             </div>
           </div>
           <ChevronRight size={18} className="text-white/60" />
+        </div>
+      </button>
+
+      {/* Expression training - 表达训练 */}
+      <button onClick={() => onNav("expression")} className="w-full rounded-2xl p-5 text-left relative overflow-hidden" style={{ background: "linear-gradient(135deg, #FAF0E0 0%, #fff 100%)", border: "1px solid #E8D5A8" }}>
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-30" style={{ background: "#B8956A" }} />
+        <div className="relative flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "#1a2332" }}>
+            <Mic size={22} style={{ color: "#B8956A" }} />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="font-bold text-base" style={{ color: "#1a2332" }}>表达能力提升</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: "#C7472D", color: "#fff" }}>新</span>
+            </div>
+            <div className="text-xs leading-relaxed" style={{ color: "#7A6B52" }}>声训课、演讲课、辩论范例、高分实录。内容好之外,把"表现力"也练出来。</div>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(199,71,45,0.15)", color: "#C7472D" }}>声训</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(199,71,45,0.15)", color: "#C7472D" }}>演讲</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded" style={{ background: "rgba(199,71,45,0.15)", color: "#C7472D" }}>视频范例</span>
+            </div>
+          </div>
+          <ChevronRight size={18} style={{ color: "#9A8866" }} />
         </div>
       </button>
 
@@ -1089,7 +1128,7 @@ function PartnersScreen({ onBack, onSelectPerson }) {
   );
 }
 
-function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSupport, examGoal, setExamGoal }) {
+function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSupport, onOpenPeople, examGoal, setExamGoal }) {
   const ROLE_INFO = {
     student: { label: "学员", icon: BookOpen },
     teacher: { label: "面试老师", icon: GraduationCap },
@@ -1111,14 +1150,14 @@ function MeScreen({ role, onLogout, onOpenSchedule, onOpenAvailability, onOpenSu
         </button>
       </div>
 
-      {role === "student" && <StudentMeView onOpenSupport={onOpenSupport} examGoal={examGoal} setExamGoal={setExamGoal} />}
+      {role === "student" && <StudentMeView onOpenSupport={onOpenSupport} onOpenPeople={onOpenPeople} examGoal={examGoal} setExamGoal={setExamGoal} />}
       {role === "teacher" && <TeacherMeView onOpenSchedule={onOpenSchedule} onOpenSupport={onOpenSupport} />}
       {role === "partner" && <PartnerMeView onOpenAvailability={onOpenAvailability} onOpenSupport={onOpenSupport} />}
     </div>
   );
 }
 
-function StudentMeView({ onOpenSupport, examGoal, setExamGoal }) {
+function StudentMeView({ onOpenSupport, onOpenPeople, examGoal, setExamGoal }) {
   const [editing, setEditing] = useState(false);
 
   const hasPos = examGoal.position && examGoal.position !== "暂未确定";
@@ -1164,9 +1203,11 @@ function StudentMeView({ onOpenSupport, examGoal, setExamGoal }) {
         })}
       </div>
       <MenuList items={[
+        { icon: Heart, label: "我的公益时长", value: "32 小时" },
         { icon: Bookmark, label: "我的收藏" },
         { icon: MessageSquare, label: "练习记录" },
         { icon: Award, label: "成就徽章" },
+        { icon: GraduationCap, label: "面试老师 · 高分陪练", onClick: onOpenPeople },
         { icon: Clock, label: "课程订单" },
         { icon: Headphones, label: "客服中心", value: "在线", onClick: onOpenSupport },
       ]} />
@@ -3502,6 +3543,805 @@ function ArticleDetailScreen({ article, onBack }) {
         <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-1" style={{ background: "#1a2332", color: "#fff" }}>
           <Mic size={13} /> 用此素材开练
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ——— Expression Training / 表达能力提升 ———
+
+const EXPRESSION_CATEGORIES = [
+  { id: "voice", label: "声训课", icon: Volume2, color: "#C7472D", desc: "气息 · 咬字 · 重音" },
+  { id: "speech", label: "演讲课", icon: Mic, color: "#9A6A2A", desc: "结构 · 即兴 · 台风" },
+  { id: "demo", label: "高分实录", icon: Award, color: "#1a2332", desc: "上岸考生答题视频" },
+  { id: "debate", label: "辩论说理", icon: MessageSquare, color: "#5C8A52", desc: "辩手 / 评论员范例" },
+];
+
+const EXPRESSION_VIDEOS = [
+  {
+    id: 1, category: "voice", duration: "08:24", level: "入门",
+    title: "气息控制基础:腹式呼吸三步训练",
+    teacher: "陈老师 · 中传播音系",
+    cover: "linear-gradient(135deg, #1a2332, #2a3447)",
+    tags: ["气息", "新人必看"],
+    points: ["紧张时声音颤抖的根本原因是浅胸式呼吸", "腹式呼吸的体感找寻与日常练习", "答题前 30 秒的暖嗓流程"],
+    new: true,
+  },
+  {
+    id: 2, category: "voice", duration: "12:08", level: "进阶",
+    title: "停连重音:让答题有节奏感",
+    teacher: "陈老师 · 中传播音系",
+    cover: "linear-gradient(135deg, #2a3447, #4a5670)",
+    tags: ["节奏", "重音"],
+    points: ["三种停顿:语法停顿、情感停顿、强调停顿", "重音落点决定听感的专业度", "实战示范:同一段话的三种处理"],
+  },
+  {
+    id: 3, category: "speech", duration: "15:36", level: "核心",
+    title: "结构化答题的黄金 30 秒开篇",
+    teacher: "王立群 · 前国考考官",
+    cover: "linear-gradient(135deg, #C7472D, #9A6A2A)",
+    tags: ["开篇", "高频"],
+    points: ["开篇决定考官第一印象", "三种万能开篇套路与适用场景", "如何避开「我认为」的低级表述"],
+    new: true,
+  },
+  {
+    id: 4, category: "speech", duration: "10:42", level: "进阶",
+    title: "即兴答题:1 分钟思考时间这样用",
+    teacher: "张老师 · 演讲教练",
+    cover: "linear-gradient(135deg, #9A6A2A, #B8956A)",
+    tags: ["即兴", "思考"],
+    points: ["短时间内搭建答题骨架", "用关键词法替代逐字打腹稿", "拖延时间的合理表达技巧"],
+  },
+  {
+    id: 5, category: "demo", duration: "06:18", level: "范例",
+    title: "[2024 国考 88 分实录] 综合分析题答题",
+    teacher: "吴清越 · 海关岗 90.2 分上岸",
+    cover: "linear-gradient(135deg, #1a2332, #4a5670)",
+    tags: ["实录", "国考", "综合分析"],
+    points: ["真实考场答题节奏参考", "高分考生的逻辑层次呈现", "细节处理:微表情、停顿、收尾"],
+  },
+  {
+    id: 6, category: "demo", duration: "07:54", level: "范例",
+    title: "[2024 选调 88 分实录] 应急应变题答题",
+    teacher: "苏婉清 · 选调生 88 分上岸",
+    cover: "linear-gradient(135deg, #1a2332, #5C8A52)",
+    tags: ["实录", "选调", "应急应变"],
+    points: ["紧急情境下的语速与镇定感", "处理顺序的条理化表达", "结尾呼应展现政治素养"],
+  },
+  {
+    id: 7, category: "debate", duration: "09:12", level: "拓展",
+    title: "金句拆解:领导讲话中的对仗与排比",
+    teacher: "李老师 · 文笔提升",
+    cover: "linear-gradient(135deg, #5C8A52, #1a2332)",
+    tags: ["金句", "排比"],
+    points: ["四种最常见的政论修辞结构", "怎样模仿不显得生硬", "答题中适度引用的尺度把握"],
+  },
+  {
+    id: 8, category: "debate", duration: "11:30", level: "拓展",
+    title: "辩论范例:如何给反方观点「留余地」",
+    teacher: "赵老师 · 前华辩教练",
+    cover: "linear-gradient(135deg, #2a3447, #9A6A2A)",
+    tags: ["辩证", "综合分析"],
+    points: ["综合分析题最忌一边倒", "承认对方合理性的三种话术", "辩证思维 vs 和稀泥的边界"],
+    new: true,
+  },
+];
+
+function ExpressionScreen({ onBack, onOpenVideo }) {
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const filtered = activeCategory === "all"
+    ? EXPRESSION_VIDEOS
+    : EXPRESSION_VIDEOS.filter((v) => v.category === activeCategory);
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScreenHeader title="表达能力提升" onBack={onBack} />
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Hero */}
+        <div className="px-5 pt-4 pb-5 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #1a2332, #2a3447)" }}>
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: "#C7472D" }} />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-2">
+              <Mic size={16} style={{ color: "#B8956A" }} />
+              <span className="text-[10px] tracking-widest" style={{ color: "#B8956A" }}>EXPRESSION</span>
+            </div>
+            <div className="font-serif-cn font-bold text-white text-lg mb-1">内容是骨,表达是魂</div>
+            <div className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+              结构化面试中,表达力占总分约 30%。声音、节奏、台风一起练。
+            </div>
+          </div>
+        </div>
+
+        {/* Category cards */}
+        <div className="px-5 pt-4">
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            {EXPRESSION_CATEGORIES.map((c) => {
+              const Icon = c.icon;
+              const count = EXPRESSION_VIDEOS.filter((v) => v.category === c.id).length;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCategory(c.id)}
+                  className="rounded-xl p-3.5 text-left flex items-center gap-3 active:scale-[0.99] transition-transform"
+                  style={{ background: "#fff", border: "1px solid #E8DFCC" }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#FAF0E0" }}>
+                    <Icon size={18} style={{ color: c.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-xs" style={{ color: "#1a2332" }}>{c.label}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: "#9A8866" }}>{c.desc}</div>
+                    <div className="text-[9px] mt-0.5 font-semibold" style={{ color: "#C7472D" }}>{count} 节课</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Filter chips */}
+        <div className="px-5">
+          <div className="flex gap-2 overflow-x-auto scroll-x -mx-5 px-5 pb-3">
+            <button
+              onClick={() => setActiveCategory("all")}
+              className="px-3 py-1.5 rounded-full text-[11px] font-semibold shrink-0"
+              style={{
+                background: activeCategory === "all" ? "#1a2332" : "#fff",
+                color: activeCategory === "all" ? "#fff" : "#7A6B52",
+                border: "1px solid #E8DFCC",
+              }}
+            >全部</button>
+            {EXPRESSION_CATEGORIES.map((c) => {
+              const active = activeCategory === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveCategory(c.id)}
+                  className="px-3 py-1.5 rounded-full text-[11px] font-semibold shrink-0"
+                  style={{
+                    background: active ? "#1a2332" : "#fff",
+                    color: active ? "#fff" : "#7A6B52",
+                    border: "1px solid #E8DFCC",
+                  }}
+                >{c.label}</button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Video list */}
+        <div className="px-5 pb-6">
+          <div className="space-y-3">
+            {filtered.map((v) => {
+              const cat = EXPRESSION_CATEGORIES.find((c) => c.id === v.category);
+              const CatIcon = cat.icon;
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => onOpenVideo(v)}
+                  className="w-full rounded-xl overflow-hidden text-left active:scale-[0.99] transition-transform"
+                  style={{ background: "#fff", border: "1px solid #E8DFCC" }}
+                >
+                  {/* Video cover */}
+                  <div className="aspect-video relative" style={{ background: v.cover }}>
+                    {/* Decorative pattern overlay */}
+                    <div className="absolute inset-0" style={{
+                      backgroundImage: "radial-gradient(circle at 30% 30%, rgba(184,149,106,0.15) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(199,71,45,0.1) 0%, transparent 50%)"
+                    }} />
+                    {/* Play button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+                        <Play size={22} fill="#fff" stroke="#fff" style={{ marginLeft: 2 }} />
+                      </div>
+                    </div>
+                    {/* Top labels */}
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "rgba(0,0,0,0.5)", color: "#fff", backdropFilter: "blur(4px)" }}>
+                        <CatIcon size={10} />{cat.label}
+                      </span>
+                      {v.new && <span className="text-[9px] px-1.5 py-0.5 rounded font-bold stamp" style={{ background: "#C7472D", color: "#fff" }}>NEW</span>}
+                    </div>
+                    {/* Bottom right - duration */}
+                    <div className="absolute bottom-2.5 right-2.5">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" style={{ background: "rgba(0,0,0,0.6)", color: "#fff", backdropFilter: "blur(4px)" }}>{v.duration}</span>
+                    </div>
+                    {/* Bottom left - level */}
+                    <div className="absolute bottom-2.5 left-2.5">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ background: "rgba(184,149,106,0.9)", color: "#1a2332" }}>{v.level}</span>
+                    </div>
+                  </div>
+
+                  {/* Video info */}
+                  <div className="p-3.5">
+                    <div className="font-bold text-sm mb-1 leading-snug" style={{ color: "#1a2332" }}>{v.title}</div>
+                    <div className="text-[10.5px] mb-2" style={{ color: "#7A6B52" }}>{v.teacher}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {v.tags.map((t) => (
+                        <span key={t} className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#FAF0E0", color: "#9A6A2A" }}>#{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ——— Video Detail (视频详情) ———
+
+function VideoDetailScreen({ video, onBack }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const cat = EXPRESSION_CATEGORIES.find((c) => c.id === video.category);
+  const CatIcon = cat.icon;
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScreenHeader title={cat.label} onBack={onBack} />
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Video player area */}
+        <div className="aspect-video relative" style={{ background: video.cover }}>
+          <div className="absolute inset-0" style={{
+            backgroundImage: "radial-gradient(circle at 30% 30%, rgba(184,149,106,0.2) 0%, transparent 60%), radial-gradient(circle at 70% 70%, rgba(199,71,45,0.15) 0%, transparent 60%)"
+          }} />
+          {/* Play button center */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <button className="w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-95" style={{ background: "rgba(199,71,45,0.9)", backdropFilter: "blur(4px)" }}>
+              <Play size={32} fill="#fff" stroke="#fff" style={{ marginLeft: 3 }} />
+            </button>
+          </div>
+          {/* Top: category */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+            <span className="text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "rgba(0,0,0,0.5)", color: "#fff", backdropFilter: "blur(4px)" }}>
+              <CatIcon size={10} />{cat.label}
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: "rgba(184,149,106,0.85)", color: "#1a2332" }}>{video.level}</span>
+          </div>
+          {/* Bottom: progress placeholder */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pb-2.5">
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.2)" }}>
+              <div className="h-full w-0 rounded-full" style={{ background: "#C7472D" }} />
+            </div>
+            <div className="flex justify-between text-[9px] mt-1.5 font-mono" style={{ color: "rgba(255,255,255,0.85)" }}>
+              <span>00:00</span>
+              <span>{video.duration}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Video info */}
+        <div className="px-5 pt-4">
+          <h1 className="font-serif-cn font-bold text-base leading-snug mb-2" style={{ color: "#1a2332" }}>{video.title}</h1>
+
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-serif-cn text-xs font-bold" style={{ background: "#FAF0E0", color: "#9A6A2A" }}>
+              {video.teacher.charAt(0)}
+            </div>
+            <div className="flex-1">
+              <div className="text-xs font-bold" style={{ color: "#1a2332" }}>{video.teacher.split(" · ")[0]}</div>
+              <div className="text-[10px]" style={{ color: "#7A6B52" }}>{video.teacher.split(" · ")[1] || ""}</div>
+            </div>
+            <button className="px-3 py-1 rounded-full text-[10px] font-bold" style={{ background: "#1a2332", color: "#fff" }}>关注</button>
+          </div>
+
+          {/* Stats row */}
+          <div className="flex items-center gap-4 mb-5 py-2 border-y" style={{ borderColor: "#E8DFCC" }}>
+            <div className="flex items-center gap-1 text-[10.5px]" style={{ color: "#7A6B52" }}>
+              <Clock size={11} /> {video.duration}
+            </div>
+            <div className="flex items-center gap-1 text-[10.5px]" style={{ color: "#7A6B52" }}>
+              <TrendingUp size={11} /> 4.2k 观看
+            </div>
+            <div className="flex items-center gap-1 text-[10.5px]" style={{ color: "#7A6B52" }}>
+              <Star size={11} fill="#B8956A" stroke="#B8956A" /> 4.9
+            </div>
+          </div>
+
+          {/* Key takeaways */}
+          <div className="mb-5">
+            <SectionLabel title="本节要点" hint="跟着思路学" />
+            <div className="rounded-xl p-4 space-y-2" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+              {video.points.map((p, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded shrink-0 flex items-center justify-center font-serif-cn font-bold text-[11px]" style={{ background: "#1a2332", color: "#B8956A", marginTop: 2 }}>
+                    {i + 1}
+                  </div>
+                  <div className="text-[12px] leading-relaxed" style={{ color: "#1a2332" }}>{p}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Practice prompt */}
+          <div className="rounded-xl p-4 mb-5 flex gap-3" style={{ background: "#FAF0E0", border: "1px solid #E8D5A8" }}>
+            <Sparkles size={16} style={{ color: "#9A6A2A", marginTop: 2 }} className="shrink-0" />
+            <div className="flex-1">
+              <div className="font-bold text-xs mb-0.5" style={{ color: "#1a2332" }}>看完别只是"看"</div>
+              <div className="text-[11px] leading-relaxed" style={{ color: "#7A6B52" }}>建议看 1 遍 + 跟练 1 遍。课后可直接进入 AI 单练巩固本节技巧。</div>
+            </div>
+          </div>
+
+          {/* Related videos */}
+          <div className="mb-3">
+            <SectionLabel title="相关推荐" />
+            <div className="space-y-2">
+              {EXPRESSION_VIDEOS.filter((v) => v.category === video.category && v.id !== video.id).slice(0, 2).map((v) => (
+                <div key={v.id} className="rounded-xl p-2.5 flex gap-3 items-center" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+                  <div className="w-20 aspect-video rounded-md relative flex items-center justify-center shrink-0" style={{ background: v.cover }}>
+                    <Play size={14} fill="#fff" stroke="#fff" style={{ marginLeft: 1 }} />
+                    <span className="absolute bottom-0.5 right-0.5 text-[8px] px-1 rounded font-mono" style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}>{v.duration}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-[11.5px] leading-snug" style={{ color: "#1a2332" }}>{v.title}</div>
+                    <div className="text-[10px] mt-1" style={{ color: "#7A6B52" }}>{v.teacher.split(" · ")[0]}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom action bar */}
+      <div className="shrink-0 px-5 py-3 flex items-center gap-3" style={{ background: "rgba(250,246,238,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid #E8DFCC" }}>
+        <button onClick={() => setBookmarked(!bookmarked)} className="flex flex-col items-center gap-0.5 px-2">
+          <Bookmark size={18} fill={bookmarked ? "#C7472D" : "transparent"} stroke={bookmarked ? "#C7472D" : "#7A6B52"} />
+          <span className="text-[9px]" style={{ color: bookmarked ? "#C7472D" : "#7A6B52" }}>{bookmarked ? "已收藏" : "收藏"}</span>
+        </button>
+        <button className="flex-1 py-3 rounded-xl font-bold text-sm" style={{ background: "#fff", border: "1px solid #E8DFCC", color: "#1a2332" }}>
+          做笔记
+        </button>
+        <button className="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-1" style={{ background: "#C7472D", color: "#fff" }}>
+          <Mic size={13} /> 跟练一遍
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ——— Public Service / 公益实践 ———
+
+const SERVICE_CATEGORIES = [
+  { id: "community", label: "社区服务", icon: Users, color: "#C7472D" },
+  { id: "education", label: "支教助学", icon: BookOpen, color: "#9A6A2A" },
+  { id: "elderly", label: "助老敬老", icon: Heart, color: "#1a2332" },
+  { id: "environment", label: "环保护绿", icon: Compass, color: "#5C8A52" },
+  { id: "culture", label: "文化传承", icon: Award, color: "#7A6B52" },
+  { id: "rural", label: "乡村振兴", icon: MapPinned, color: "#9A6A2A" },
+];
+
+const SERVICE_ACTIVITIES = [
+  {
+    id: 1, category: "community", region: "广州", date: "5月3日 周六", time: "09:00-12:00",
+    title: "天河区社区独居老人探访关怀",
+    org: "天河区志愿者协会",
+    location: "广州市天河区员村街道",
+    enrolled: 18, total: 25, hours: 3, points: 30,
+    status: "招募中", new: true,
+    desc: "为社区独居老人送去关怀,陪伴聊天、协助打扫、传授智能手机使用。需要有耐心、善于沟通的志愿者。",
+    tags: ["新人友好", "本周可约"],
+  },
+  {
+    id: 2, category: "education", region: "广州", date: "5月10日 - 5月12日", time: "全天",
+    title: "梅州偏远山村小学短期支教",
+    org: "广东青年支教联盟",
+    location: "梅州市丰顺县某村小学",
+    enrolled: 6, total: 8, hours: 24, points: 240,
+    status: "即将截止",
+    desc: "三天两夜支教活动,为乡村小学生上素质拓展课。包食宿,需自理交通。这段经历是面试综合岗答题的真实素材。",
+    tags: ["深度参与", "证明可开"],
+  },
+  {
+    id: 3, category: "environment", region: "广州", date: "5月5日 周一", time: "08:30-11:00",
+    title: "珠江沿岸清洁与生态调研",
+    org: "广州市生态环境局 联合主办",
+    location: "广州珠江新城段沿岸",
+    enrolled: 32, total: 50, hours: 2.5, points: 25,
+    status: "招募中",
+    desc: "结合世界环境日,清理江岸垃圾 + 记录水质观测数据。结束后有专家做生态保护科普讲座。",
+    tags: ["官方主办", "易上手"],
+  },
+  {
+    id: 4, category: "rural", region: "广州", date: "5月17日 - 5月18日", time: "周末",
+    title: "从化区帮农助销志愿队",
+    org: "团省委 · 千万工程实践",
+    location: "广州从化区某农业合作社",
+    enrolled: 12, total: 20, hours: 16, points: 160,
+    status: "招募中", new: true,
+    desc: "协助农户进行荔枝采摘、电商打包、直播助销。亲身体验乡村振兴一线工作,适合考省考公安、综合岗。",
+    tags: ["千万工程", "高含金量"],
+  },
+  {
+    id: 5, category: "elderly", region: "广州", date: "每周三", time: "14:00-17:00",
+    title: "敬老院常规陪伴(长期招募)",
+    org: "海珠区民政局",
+    location: "广州海珠区福寿敬老院",
+    enrolled: 8, total: 12, hours: 3, points: 30,
+    status: "长期招募",
+    desc: "每周三下午前往敬老院陪伴老人,可选择参与文艺表演、生活协助、阅读陪伴。建议至少持续 4 周。",
+    tags: ["可累计时长", "稳定"],
+  },
+  {
+    id: 6, category: "culture", region: "广州", date: "5月20日 周二", time: "10:00-16:00",
+    title: "粤剧文化进社区志愿宣讲",
+    org: "广州市文化馆",
+    location: "广州越秀区四个社区",
+    enrolled: 5, total: 10, hours: 6, points: 60,
+    status: "招募中",
+    desc: "协助粤剧老师走进社区做文化普及,负责场务、互动引导、记录拍摄。文化传承类素材,适合答文化自信题。",
+    tags: ["文化主题"],
+  },
+];
+
+const ACHIEVEMENT_BADGES = [
+  { hours: 10, name: "微光", color: "#9A8866", unlocked: true },
+  { hours: 30, name: "初心", color: "#B8956A", unlocked: true },
+  { hours: 60, name: "笃行", color: "#9A6A2A", unlocked: false },
+  { hours: 100, name: "公仆", color: "#C7472D", unlocked: false },
+  { hours: 500, name: "为民", color: "#1a2332", unlocked: false },
+];
+
+function ServiceScreen({ onOpenActivity, examGoal }) {
+  const [activeCategory, setActiveCategory] = useState("all");
+  const userRegion = (examGoal?.region && examGoal.region !== "全国") ? examGoal.region : "广州";
+
+  const filtered = activeCategory === "all"
+    ? SERVICE_ACTIVITIES
+    : SERVICE_ACTIVITIES.filter((a) => a.category === activeCategory);
+
+  // mock user state
+  const myHours = 32;
+  const myActivities = 7;
+  const nextBadge = ACHIEVEMENT_BADGES.find((b) => !b.unlocked);
+
+  return (
+    <div className="overflow-y-auto h-full">
+      {/* Hero - 价值观锚点 */}
+      <div className="px-5 pt-4 pb-5 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #1a2332, #2a3447)" }}>
+        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: "#C7472D" }} />
+        <div className="absolute -left-4 -bottom-8 w-28 h-28 rounded-full opacity-5" style={{ background: "#B8956A" }} />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <Heart size={16} style={{ color: "#B8956A" }} fill="#B8956A" />
+            <span className="text-[10px] tracking-widest" style={{ color: "#B8956A" }}>FOR THE PEOPLE</span>
+          </div>
+          <div className="font-serif-cn font-bold text-white text-lg mb-1">先做好事,再做答题</div>
+          <div className="text-[11px] leading-relaxed mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>真实的公益经历,胜过千百句答题套话。
+          </div>
+          <div className="text-[11px] leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+            这段经历将伴随你走过备考、面试,与未来。
+          </div>
+        </div>
+      </div>
+
+      {/* My footprint card */}
+      <div className="px-5 -mt-3 mb-4">
+        <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #FAF0E0, #fff)", border: "1px solid #E8D5A8" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-[10px] mb-0.5" style={{ color: "#9A6A2A" }}>我的公益足迹</div>
+              <div className="flex items-baseline gap-1">
+                <span className="font-serif-cn font-black text-2xl" style={{ color: "#1a2332" }}>{myHours}</span>
+                <span className="text-[11px]" style={{ color: "#7A6B52" }}>小时</span>
+                <span className="text-[10px] mx-1" style={{ color: "#9A8866" }}>·</span>
+                <span className="font-serif-cn font-bold text-base" style={{ color: "#1a2332" }}>{myActivities}</span>
+                <span className="text-[10px]" style={{ color: "#7A6B52" }}>次活动</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-1" style={{ background: "#1a2332" }}>
+                <span className="font-serif-cn font-bold text-white text-base">初</span>
+              </div>
+              <span className="text-[9px] font-bold" style={{ color: "#9A6A2A" }}>初心徽章</span>
+            </div>
+          </div>
+
+          {/* Progress to next badge */}
+          {nextBadge && (
+            <div>
+              <div className="flex justify-between text-[10px] mb-1.5" style={{ color: "#7A6B52" }}>
+                <span>距下一徽章「<span className="font-bold" style={{ color: "#9A6A2A" }}>{nextBadge.name}</span>」还差</span>
+                <span className="font-bold" style={{ color: "#1a2332" }}>{nextBadge.hours - myHours} 小时</span>
+              </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: "#F0E8D4" }}>
+                <div className="h-full rounded-full" style={{ width: `${(myHours / nextBadge.hours) * 100}%`, background: "linear-gradient(90deg, #B8956A, #C7472D)" }} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="px-5 mb-5 grid grid-cols-3 gap-2">
+        <button className="rounded-xl p-3 flex flex-col items-center gap-1" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+          <QrCode size={18} style={{ color: "#C7472D" }} />
+          <span className="text-[10px] font-bold" style={{ color: "#1a2332" }}>扫码打卡</span>
+        </button>
+        <button className="rounded-xl p-3 flex flex-col items-center gap-1" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+          <Trophy size={18} style={{ color: "#9A6A2A" }} />
+          <span className="text-[10px] font-bold" style={{ color: "#1a2332" }}>我的徽章</span>
+        </button>
+        <button className="rounded-xl p-3 flex flex-col items-center gap-1" style={{ background: "#fff", border: "1px solid #E8DFCC" }}>
+          <Sparkles size={18} style={{ color: "#5C8A52" }} />
+          <span className="text-[10px] font-bold leading-tight text-center" style={{ color: "#1a2332" }}>转为<br/>答题素材</span>
+        </button>
+      </div>
+
+      {/* Region indicator */}
+      <div className="px-5 mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <MapPin size={12} style={{ color: "#C7472D" }} />
+          <span className="text-xs font-bold" style={{ color: "#1a2332" }}>{userRegion}周边活动</span>
+          <span className="text-[10px]" style={{ color: "#9A8866" }}>· 共 {SERVICE_ACTIVITIES.length} 项</span>
+        </div>
+        <button className="text-[10.5px] font-semibold" style={{ color: "#9A6A2A" }}>切换地区 →</button>
+      </div>
+
+      {/* Categories */}
+      <div className="px-5 mb-4">
+        <div className="flex gap-2 overflow-x-auto scroll-x -mx-5 px-5 pb-1">
+          <button
+            onClick={() => setActiveCategory("all")}
+            className="px-3 py-1.5 rounded-full text-[11px] font-semibold shrink-0"
+            style={{
+              background: activeCategory === "all" ? "#1a2332" : "#fff",
+              color: activeCategory === "all" ? "#fff" : "#7A6B52",
+              border: "1px solid #E8DFCC",
+            }}
+          >全部</button>
+          {SERVICE_CATEGORIES.map((c) => {
+            const Icon = c.icon;
+            const active = activeCategory === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setActiveCategory(c.id)}
+                className="px-3 py-1.5 rounded-full text-[11px] font-semibold flex items-center gap-1 shrink-0"
+                style={{
+                  background: active ? "#1a2332" : "#fff",
+                  color: active ? "#fff" : "#7A6B52",
+                  border: "1px solid #E8DFCC",
+                }}
+              >
+                <Icon size={11} style={{ color: active ? "#B8956A" : c.color }} />
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Activity list */}
+      <div className="px-5 pb-6 space-y-3">
+        {filtered.map((a) => {
+          const cat = SERVICE_CATEGORIES.find((c) => c.id === a.category);
+          const CatIcon = cat.icon;
+          const remaining = a.total - a.enrolled;
+          const isFew = remaining <= 5;
+          return (
+            <button
+              key={a.id}
+              onClick={() => onOpenActivity(a)}
+              className="w-full rounded-xl p-4 text-left active:scale-[0.99] transition-transform"
+              style={{ background: "#fff", border: "1px solid #E8DFCC" }}
+            >
+              <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "#FAF0E0", color: cat.color }}>
+                  <CatIcon size={9} />{cat.label}
+                </span>
+                {a.new && <span className="text-[9px] px-1.5 py-0.5 rounded font-bold stamp" style={{ background: "#C7472D", color: "#fff" }}>NEW</span>}
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{
+                  background: a.status === "即将截止" ? "rgba(199,71,45,0.15)" : a.status === "长期招募" ? "rgba(92,138,82,0.15)" : "#F0E8D4",
+                  color: a.status === "即将截止" ? "#C7472D" : a.status === "长期招募" ? "#5C8A52" : "#7A6B52",
+                }}>{a.status}</span>
+                <span className="ml-auto flex items-center gap-1 text-[10px] font-bold" style={{ color: "#9A6A2A" }}>
+                  <Star size={9} fill="#B8956A" stroke="#B8956A" />{a.points} 积分
+                </span>
+              </div>
+              <div className="font-bold text-sm mb-1.5 leading-snug" style={{ color: "#1a2332" }}>{a.title}</div>
+              <div className="text-[10.5px] mb-2" style={{ color: "#7A6B52" }}>{a.org}</div>
+
+              <div className="space-y-1 mb-2">
+                <DetailLine icon={Calendar} text={`${a.date} · ${a.time}`} />
+                <DetailLine icon={MapPin} text={a.location} />
+                <DetailLine icon={Clock} text={`服务时长 ${a.hours} 小时`} />
+              </div>
+
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5">
+                    {[...Array(Math.min(3, a.enrolled))].map((_, i) => (
+                      <div key={i} className="w-5 h-5 rounded-full font-serif-cn text-[9px] font-bold flex items-center justify-center" style={{ background: ["#FAF0E0", "#F0E8D4", "#E8D5A8"][i], color: "#9A6A2A", border: "2px solid #fff" }}>
+                        {["王", "李", "陈"][i]}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[10px]" style={{ color: "#7A6B52" }}>
+                    已报 <span className="font-bold" style={{ color: "#1a2332" }}>{a.enrolled}</span>/{a.total}
+                    {isFew && remaining > 0 && <span className="ml-1 font-bold" style={{ color: "#C7472D" }}>· 剩 {remaining} 名</span>}
+                  </span>
+                </div>
+                <span className="text-[11px] font-bold" style={{ color: "#C7472D" }}>报名 →</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DetailLine({ icon: Icon, text }) {
+  return (
+    <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "#7A6B52" }}>
+      <Icon size={11} style={{ color: "#9A8866" }} />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+// ——— Activity Detail (公益活动详情) ———
+
+function ActivityDetailScreen({ activity, onBack }) {
+  const cat = SERVICE_CATEGORIES.find((c) => c.id === activity.category);
+  const CatIcon = cat.icon;
+  const [enrolled, setEnrolled] = useState(false);
+  const remaining = activity.total - activity.enrolled;
+
+  const handleEnroll = () => {
+    setEnrolled(true);
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <ScreenHeader title="活动详情" onBack={onBack} />
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Hero */}
+        <div className="px-5 pt-4 pb-5 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #1a2332 0%, #2a3447 100%)` }}>
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10" style={{ background: cat.color }} />
+          <div className="relative">
+            <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              <span className="text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "rgba(184,149,106,0.25)", color: "#B8956A" }}>
+                <CatIcon size={10} />{cat.label}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded font-bold flex items-center gap-1" style={{ background: "rgba(184,149,106,0.25)", color: "#B8956A" }}>
+                <MapPin size={10} />{activity.region}
+              </span>
+              {activity.new && <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: "#C7472D", color: "#fff" }}>NEW</span>}
+            </div>
+            <h1 className="font-serif-cn font-bold text-white text-lg leading-snug mb-2">{activity.title}</h1>
+            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>{activity.org}</div>
+          </div>
+        </div>
+
+        {/* Reward highlight */}
+        <div className="mx-5 -mt-3 mb-4 rounded-xl p-3 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #FAF0E0, #fff)", border: "1px solid #E8D5A8" }}>
+          <div className="flex-1 text-center border-r" style={{ borderColor: "#E8D5A8" }}>
+            <div className="font-serif-cn font-black text-base" style={{ color: "#1a2332" }}>{activity.hours}<span className="text-[10px] font-normal ml-0.5">小时</span></div>
+            <div className="text-[9px]" style={{ color: "#7A6B52" }}>志愿时长</div>
+          </div>
+          <div className="flex-1 text-center border-r" style={{ borderColor: "#E8D5A8" }}>
+            <div className="font-serif-cn font-black text-base" style={{ color: "#C7472D" }}>{activity.points}</div>
+            <div className="text-[9px]" style={{ color: "#7A6B52" }}>公益积分</div>
+          </div>
+          <div className="flex-1 text-center">
+            <div className="font-serif-cn font-bold text-sm flex items-center justify-center gap-0.5" style={{ color: "#9A6A2A" }}>
+              <CheckCircle size={11} />可开
+            </div>
+            <div className="text-[9px]" style={{ color: "#7A6B52" }}>服务证明</div>
+          </div>
+        </div>
+
+        <div className="px-5 pb-6">
+          {/* Activity info */}
+          <SectionLabel title="活动信息" />
+          <div className="rounded-xl divide-y mb-5" style={{ background: "#fff", border: "1px solid #E8DFCC", borderColor: "#F0E8D4" }}>
+            <InfoRow icon={Calendar} label="活动时间" value={`${activity.date} · ${activity.time}`} />
+            <InfoRow icon={MapPin} label="活动地点" value={activity.location} />
+            <InfoRow icon={Users} label="招募名额" value={`${activity.enrolled}/${activity.total} 人 · 剩 ${remaining} 名`} highlight={remaining <= 5} />
+            <InfoRow icon={ShieldCheck} label="主办方" value={activity.org} />
+          </div>
+
+          {/* Description */}
+          <SectionLabel title="活动介绍" />
+          <div className="rounded-xl p-4 text-[12.5px] leading-relaxed mb-5" style={{ background: "#fff", border: "1px solid #E8DFCC", color: "#1a2332" }}>
+            {activity.desc}
+          </div>
+
+          {/* Tags */}
+          <SectionLabel title="活动标签" />
+          <div className="flex flex-wrap gap-1.5 mb-5">
+            {activity.tags.map((t) => (
+              <span key={t} className="text-[10px] px-2 py-1 rounded" style={{ background: "#FAF0E0", color: "#9A6A2A", border: "1px solid #E8D5A8" }}>#{t}</span>
+            ))}
+          </div>
+
+          {/* Why this matters */}
+          <div className="rounded-xl p-4 mb-5 flex gap-3" style={{ background: "#1a2332" }}>
+            <Sparkles size={16} style={{ color: "#B8956A", marginTop: 2 }} className="shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-xs mb-1.5" style={{ color: "#B8956A" }}>这次经历能帮你什么</div>
+              <div className="text-[11px] leading-relaxed mb-2" style={{ color: "rgba(255,255,255,0.85)" }}>
+                参与后,平台会自动把你的观察、感悟生成「基层经历类」答题素材片段,可在面试题中作为真实经历调用。
+              </div>
+              <div className="text-[10px]" style={{ color: "rgba(184,149,106,0.7)" }}>
+                考官能听出来你是真去过的,还是从书上抄的。
+              </div>
+            </div>
+          </div>
+
+          {/* Notice */}
+          <div className="rounded-xl p-3 mb-4 flex items-start gap-2" style={{ background: "#FAF0E0", border: "1px solid #E8D5A8" }}>
+            <AlertCircle size={13} style={{ color: "#9A6A2A", marginTop: 1 }} className="shrink-0" />
+            <div className="text-[10.5px] leading-relaxed" style={{ color: "#7A6B52" }}>
+              请如实参与,平台与主办方共同核验。<span className="font-bold" style={{ color: "#9A6A2A" }}>缺席或敷衍将影响后续报名权益。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky bottom bar */}
+      <div className="shrink-0 px-5 py-3 flex items-center gap-3" style={{ background: "rgba(250,246,238,0.95)", backdropFilter: "blur(8px)", borderTop: "1px solid #E8DFCC" }}>
+        <div className="flex-1">
+          <div className="text-[10px]" style={{ color: "#7A6B52" }}>志愿时长 · 积分</div>
+          <div className="font-serif-cn font-bold text-base" style={{ color: "#1a2332" }}>{activity.hours}h · <span style={{ color: "#C7472D" }}>{activity.points}分</span></div>
+        </div>
+        <button
+          onClick={handleEnroll}
+          disabled={enrolled}
+          className="px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5"
+          style={{
+            background: enrolled ? "#5C8A52" : "#C7472D",
+            color: "#fff",
+            minWidth: 140,
+          }}
+        >
+          {enrolled ? (
+            <><CheckCircle size={14} /> 已成功报名</>
+          ) : (
+            <><Heart size={13} fill="#fff" /> 我要报名</>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value, highlight }) {
+  return (
+    <div className="px-4 py-3 flex items-center gap-3">
+      <Icon size={13} style={{ color: "#9A8866" }} />
+      <span className="text-[11px]" style={{ color: "#7A6B52", minWidth: 56 }}>{label}</span>
+      <span className="flex-1 text-[11.5px] font-semibold text-right" style={{ color: highlight ? "#C7472D" : "#1a2332" }}>{value}</span>
+    </div>
+  );
+}
+
+// ——— People List Wrapper(原师资页,从我的菜单进入) ———
+
+function PeopleListScreen({ onBack, onSelectPerson }) {
+  const [tab, setTab] = useState("teachers");
+  return (
+    <div>
+      <ScreenHeader title="面试老师 · 高分陪练" onBack={onBack} />
+      <div className="px-5 pt-3 pb-6">
+        <div className="flex p-1 rounded-xl mb-5" style={{ background: "#F0E8D4" }}>
+          {[{ id: "teachers", label: "面试老师" }, { id: "partners", label: "高分陪练" }].map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)} className="flex-1 py-2 rounded-lg text-sm font-semibold" style={{ background: tab === t.id ? "#1a2332" : "transparent", color: tab === t.id ? "#fff" : "#7A6B52" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {tab === "teachers"
+          ? <TeacherList onSelect={(t) => onSelectPerson(t, "teacher")} />
+          : <PartnerList onSelect={(p) => onSelectPerson(p, "partner")} />}
       </div>
     </div>
   );
